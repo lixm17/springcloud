@@ -2,6 +2,7 @@ package com.lexue.service;
 
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by 25610 on 2020/7/3.
  */
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     //如果有多台，进行负载，
@@ -23,8 +25,8 @@ public class UserServiceImpl implements UserService {
     /**
      *  Command属性
      *  execution.isolation.strategy  执行的隔离策略
-     *  THREAD 线程池隔离策略(默认)  独立线程接收请求
-     *  SEMAPHORE 信号量隔离策略 在调用线程上执行
+     *  THREAD 线程池隔离策略(默认)  独立线程接收请求 thread
+     *  SEMAPHORE 信号量隔离策略 在调用线程上执行     semaphore
      *
      *  execution.isolation.thread.timeoutInMilliseconds  设置HystrixCommand执行的超时时间，单位毫秒
      *  execution.timeout.enabled  是否启动超时时间，true，false
@@ -44,7 +46,7 @@ public class UserServiceImpl implements UserService {
      *  requestLog.enabled 是否打印日志到HystrixRequestLog中，默认true
      *
      *  @HystrixCollapser   请求合并
-     *  maxRequestsInBatch  设置一次请求合并批处理中允许的最大请求数
+     *  maxRequestsInBatch  设置一次请求合并批处理5中允许的最大请求数
      *  timerDelayInMilliseconds  设置批处理过程中每个命令延迟时间
      *  requestCache.enabled   批处理过程中是否开启请求缓存，默认true
      *
@@ -53,22 +55,43 @@ public class UserServiceImpl implements UserService {
      *  coreSize   执行命令线程池的最大线程数，也就是命令执行的最大并发数，默认10
      *
      */
-    @HystrixCommand(fallbackMethod = "queryContentsFallback",
+    @HystrixCommand(fallbackMethod = "getUserFallback",//服务降级
             commandKey = "queryContents",
             groupKey = "querygroup-one",
             commandProperties = {
-                    @HystrixProperty(name = "execution.isolation.strategy", value = "THREAD"),
+                    @HystrixProperty(name = "execution.isolation.strategy", value = "THREAD"),//默认线程池
                     @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "1000000000")
             },
             threadPoolKey = "queryContentshystrixJackpool",threadPoolProperties = {
-            @HystrixProperty(name = "coreSize",value = "100")
+            @HystrixProperty(name = "coreSize",value = "100")//默认10个线程，可配置
     })
+   /* @HystrixCommand(*//*fallbackMethod = "getUserFallback",*//*
+            commandKey = "queryContents",
+            groupKey = "querygroup-one",
+            commandProperties = {
+                    @HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests", value = "100"),
+                    @HystrixProperty(name = "execution.isolation.strategy", value = "SEMAPHORE"),//默认线程池
+                    @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds",value = "1000000000")
+            },
+            threadPoolKey = "queryContentshystrixJackpool",threadPoolProperties = {
+            @HystrixProperty(name = "coreSize",value = "100")//默认10个线程，可配置
+    })*/
     @Override
     public String getUser() {
+        log.info(Thread.currentThread().getName()+"==========getUser===========");
         //get请求
         String forObject = restTemplate.getForObject("http://"+SERVICE_NAME+"/getUser", String.class);
         //post请求
 //        restTemplate.postForEntity();
         return forObject;
+    }
+
+    /**
+     * 降级方法的返回值和业务方法的返回值需要一样
+     * @return
+     */
+    public String getUserFallback() {
+        log.info(Thread.currentThread().getName()+"==========getUser===========");
+        return null;
     }
 }
