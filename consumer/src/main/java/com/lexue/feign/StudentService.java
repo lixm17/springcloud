@@ -11,7 +11,8 @@ import java.util.List;
 
 /**
  * Created by 25610 on 2020/7/14.
- * feign客户端
+ * feign客户端，没有默认降级方法
+ * name = "student",path = "/feign"
  */
 @FeignClient(name = "student",path = "/feign",fallbackFactory = StudentServiceFallbackFactory.class)
 public interface StudentService {

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 /**
  * Created by 25610 on 2020/7/14.
@@ -27,7 +26,7 @@ public class StudentController  implements StudentService{
     public String getAll() {
         return studentService.getAll();
     }
-
+    //RequestBody入参会变成json字符串，student无需再进行序列化，由json字符串转成student对象
     @Override
     @RequestMapping("/feign/student/save")
     public String save(@RequestBody Student student) {

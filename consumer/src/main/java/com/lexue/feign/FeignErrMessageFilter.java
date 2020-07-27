@@ -12,6 +12,7 @@ import java.io.IOException;
 
 /**
  * Created by 25610 on 2020/7/14.
+ * 自定义异常
  * feign的异常过滤器，是对我们异常的再封装，把feign的异常信息封装成我们系统里面的通用异常对象
  * 过滤器把异常方法返回后，feign前面定义的降级方法就会调到create方法
  */
